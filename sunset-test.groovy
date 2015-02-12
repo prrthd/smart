@@ -14,7 +14,7 @@
      *
      */
     definition(
-        name: "Magic Home",
+        name: "Magic Home Dev",
         namespace: "tslagle13",
         author: "Tim Slagle",
         description: "Monitor a set of presence sensors and change mode based on when your home is empty or occupied.  Included Night and Day modes for both an occupied and unoccupied house.",
@@ -27,50 +27,60 @@
       page(name: "selectPhrases")
         
       page( name:"Settings", title:"Settings", uninstall:true, install:true ) {
-      	section("False alarm threshold (defaults to 10 min)") {
-        	input "falseAlarmThreshold", "decimal", title: "Number of minutes", required: false
-      	}
+        section("False alarm threshold (defaults to 10 min)") {
+          input "falseAlarmThreshold", "decimal", title: "Number of minutes", required: false
+        }
     
-      	section("Zip code (for sunrise/sunset)") {
-       		input "zip", "decimal", required: true
-      	}
+        section("Zip code (for sunrise/sunset)") {
+          input "zip", "decimal", required: true
+        }
+
+        section ("Sunrise offset (optional)...") {
+          input "sunriseOffsetValue", "text", title: "HH:MM", required: false
+          input "sunriseOffsetDir", "enum", title: "Before or After", required: false, options: ["Before","After"]
+        }
+
+        section ("Sunset offset (optional)...") {
+          input "sunsetOffsetValue", "text", title: "HH:MM", required: false
+          input "sunsetOffsetDir", "enum", title: "Before or After", required: false, options: ["Before","After"]
+        }
     
-          section("Notifications") {
-            input "sendPushMessage", "enum", title: "Send a push notification when house is empty?", metadata:[values:["Yes","No"]], required:false
-            input "sendPushMessageHome", "enum", title: "Send a push notification when home is occupied?", metadata:[values:["Yes","No"]], required:false
-      	}
+        section("Notifications") {
+          input "sendPushMessage", "enum", title: "Send a push notification when house is empty?", metadata:[values:["Yes","No"]], required:false
+          input "sendPushMessageHome", "enum", title: "Send a push notification when home is occupied?", metadata:[values:["Yes","No"]], required:false
+        }
     
         section(title: "More options", hidden: hideOptionsSection(), hideable: true) {
-        		label title: "Assign a name", required: false
-    			input "days", "enum", title: "Only on certain days of the week", multiple: true, required: false,
-    				options: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-    			input "modes", "mode", title: "Only when mode is", multiple: true, required: false
-    		}
+            label title: "Assign a name", required: false
+          input "days", "enum", title: "Only on certain days of the week", multiple: true, required: false,
+            options: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+          input "modes", "mode", title: "Only when mode is", multiple: true, required: false
+        }
       }
     }
     
     def selectPhrases() {
-    	def configured = (settings.awayDay && settings.awayNight && settings.homeDay && settings.homeNight)
-        dynamicPage(name: "selectPhrases", title: "Configure", nextPage:"Settings", uninstall: true) {		
-    		section("Who?") {
-    			input "people", "capability.presenceSensor", title: "Monitor These Presences", required: true, multiple: true,  refreshAfterSelection:true
-    		}
+      def configured = (settings.awayDay && settings.awayNight && settings.homeDay && settings.homeNight)
+        dynamicPage(name: "selectPhrases", title: "Configure", nextPage:"Settings", uninstall: true) {    
+        section("Who?") {
+          input "people", "capability.presenceSensor", title: "Monitor These Presences", required: true, multiple: true,  refreshAfterSelection:true
+        }
             
-    		def phrases = location.helloHome?.getPhrases()*.label
-    		if (phrases) {
-            	phrases.sort()
-    			section("Run This Phrase When...") {
-    				log.trace phrases
-    				input "awayDay", "enum", title: "Everyone Is Away And It's Day", required: true, options: phrases,  refreshAfterSelection:true
-    				input "awayNight", "enum", title: "Everyone Is Away And It's Night", required: true, options: phrases,  refreshAfterSelection:true
+        def phrases = location.helloHome?.getPhrases()*.label
+        if (phrases) {
+              phrases.sort()
+          section("Run This Phrase When...") {
+            log.trace phrases
+            input "awayDay", "enum", title: "Everyone Is Away And It's Day", required: true, options: phrases,  refreshAfterSelection:true
+            input "awayNight", "enum", title: "Everyone Is Away And It's Night", required: true, options: phrases,  refreshAfterSelection:true
                     input "homeDay", "enum", title: "At Least One Person Is Home And It's Day", required: true, options: phrases,  refreshAfterSelection:true
                     input "homeNight", "enum", title: "At Least One Person Is Home And It's Night", required: true, options: phrases,  refreshAfterSelection:true
-    			}
+          }
                 section("Select modes used for each condition. (Needed for better app logic)") {
             input "homeModeDay", "mode", title: "Select Mode Used for 'Home Day'", required: true
             input "homeModeNight", "mode", title: "Select Mode Used for 'Home Night'", required: true
-      	}
-    		}
+        }
+        }
         }
     }
     
@@ -89,17 +99,29 @@
     }
     
     def initialize() {
-    	subscribe(people, "presence", presence)
+      subscribe(people, "presence", presence)
         runIn(60, checkSun)
-    	subscribe(location, "sunrise", setSunrise)
-    	subscribe(location, "sunset", setSunset)
+      subscribe(location, "sunrise", setSunrise)
+      subscribe(location, "sunset", setSunset)
     }
     
     //check current sun state when installed.
     def checkSun() {
       def zip     = settings.zip as String
-      def sunInfo = getSunriseAndSunset(zipCode: zip)
-     def current = now()
+      ////def sunInfo = getSunriseAndSunset(zipCode: zip)
+      def sunInfo = getSunriseAndSunset(zipCode: zip, sunriseOffset: sunriseOffset, sunsetOffset: sunsetOffset)
+      ////log.debug "Current sunrise ${sunInfooff.sunrise}"
+      ////log.debug "Current sunrise.time ${sunInfooff.sunrise.time}"
+      log.debug "Sunrise with offset ${sunInfo.sunrise}"
+      log.debug "Sunrise.time with offset ${sunInfo.sunrise.time}"
+      ////log.debug "Current sunset ${sunInfooff.sunset}"
+      ////log.debug "Current sunset.time ${sunInfooff.sunset.time}"
+      log.debug "Sunset with offset ${sunInfo.sunset}"
+      log.debug "Sunset.time with offset ${sunInfo.sunset.time}"
+      def current = now()
+      //log.debug "Current time ${current}"
+      ////def rightnow = new Date()
+      ////log.debug "Current date ${current}"
     
     if (sunInfo.sunrise.time < current && sunInfo.sunset.time > current) {
         state.sunMode = "sunrise"
@@ -163,12 +185,12 @@
       }
     
     else {
-    	def lastTime = state[evt.deviceId]
+      def lastTime = state[evt.deviceId]
         if (lastTime == null || now() - lastTime >= 1 * 60000) {
-      		log.info("Someone is home, running home sequence")
-      		setHome()
+          log.info("Someone is home, running home sequence")
+          setHome()
         }    
-    	state[evt.deviceId] = now()
+      state[evt.deviceId] = now()
     
       }
     }
@@ -269,57 +291,65 @@
     }
     
     private getAllOk() {
-    	modeOk && daysOk && timeOk
+      modeOk && daysOk && timeOk
     }
     
     private getModeOk() {
-    	def result = !modes || modes.contains(location.mode)
-    	log.trace "modeOk = $result"
-    	result
+      def result = !modes || modes.contains(location.mode)
+      log.trace "modeOk = $result"
+      result
     }
     
     private getDaysOk() {
-    	def result = true
-    	if (days) {
-    		def df = new java.text.SimpleDateFormat("EEEE")
-    		if (location.timeZone) {
-    			df.setTimeZone(location.timeZone)
-    		}
-    		else {
-    			df.setTimeZone(TimeZone.getTimeZone("America/New_York"))
-    		}
-    		def day = df.format(new Date())
-    		result = days.contains(day)
-    	}
-    	log.trace "daysOk = $result"
-    	result
+      def result = true
+      if (days) {
+        def df = new java.text.SimpleDateFormat("EEEE")
+        if (location.timeZone) {
+          df.setTimeZone(location.timeZone)
+        }
+        else {
+          df.setTimeZone(TimeZone.getTimeZone("America/New_York"))
+        }
+        def day = df.format(new Date())
+        result = days.contains(day)
+      }
+      log.trace "daysOk = $result"
+      result
     }
     
     private getTimeOk() {
-    	def result = true
-    	if (starting && ending) {
-    		def currTime = now()
-    		def start = timeToday(starting).time
-    		def stop = timeToday(ending).time
-    		result = start < stop ? currTime >= start && currTime <= stop : currTime <= stop || currTime >= start
-    	}
-    	log.trace "timeOk = $result"
-    	result
+      def result = true
+      if (starting && ending) {
+        def currTime = now()
+        def start = timeToday(starting).time
+        def stop = timeToday(ending).time
+        result = start < stop ? currTime >= start && currTime <= stop : currTime <= stop || currTime >= start
+      }
+      log.trace "timeOk = $result"
+      result
     }
     
     private hhmm(time, fmt = "h:mm a")
     {
-    	def t = timeToday(time, location.timeZone)
-    	def f = new java.text.SimpleDateFormat(fmt)
-    	f.setTimeZone(location.timeZone ?: timeZone(time))
-    	f.format(t)
+      def t = timeToday(time, location.timeZone)
+      def f = new java.text.SimpleDateFormat(fmt)
+      f.setTimeZone(location.timeZone ?: timeZone(time))
+      f.format(t)
     }
     
     private getTimeIntervalLabel()
     {
-    	(starting && ending) ? hhmm(starting) + "-" + hhmm(ending, "h:mm a z") : ""
+      (starting && ending) ? hhmm(starting) + "-" + hhmm(ending, "h:mm a z") : ""
     }
     
     private hideOptionsSection() {
-    	(starting || ending || days || modes) ? false : true
+      (starting || ending || days || modes) ? false : true
+    }
+
+    private getSunriseOffset() {
+      sunriseOffsetValue ? (sunriseOffsetDir == "Before" ? "-$sunriseOffsetValue" : sunriseOffsetValue) : null
+    }
+
+    private getSunsetOffset() {
+      sunsetOffsetValue ? (sunsetOffsetDir == "Before" ? "-$sunsetOffsetValue" : sunsetOffsetValue) : null
     }
