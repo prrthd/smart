@@ -108,20 +108,13 @@
     //check current sun state when installed.
     def checkSun() {
       def zip     = settings.zip as String
-      ////def sunInfo = getSunriseAndSunset(zipCode: zip)
       def sunInfo = getSunriseAndSunset(zipCode: zip, sunriseOffset: sunriseOffset, sunsetOffset: sunsetOffset)
-      ////log.debug "Current sunrise ${sunInfooff.sunrise}"
-      ////log.debug "Current sunrise.time ${sunInfooff.sunrise.time}"
-      log.debug "Sunrise with offset ${sunInfo.sunrise}"
-      log.debug "Sunrise.time with offset ${sunInfo.sunrise.time}"
-      ////log.debug "Current sunset ${sunInfooff.sunset}"
-      ////log.debug "Current sunset.time ${sunInfooff.sunset.time}"
-      log.debug "Sunset with offset ${sunInfo.sunset}"
-      log.debug "Sunset.time with offset ${sunInfo.sunset.time}"
       def current = now()
-      //log.debug "Current time ${current}"
-      ////def rightnow = new Date()
-      ////log.debug "Current date ${current}"
+
+      //log.debug "Sunrise with offset ${sunInfo.sunrise}"
+      //log.debug "Sunrise.time with offset ${sunInfo.sunrise.time}"
+      //log.debug "Sunset with offset ${sunInfo.sunset}"
+      //log.debug "Sunset.time with offset ${sunInfo.sunset.time}"
     
     if (sunInfo.sunrise.time < current && sunInfo.sunset.time > current) {
         state.sunMode = "sunrise"
