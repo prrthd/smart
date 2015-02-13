@@ -143,13 +143,13 @@
     def changeSunMode(newMode) {
       if(allOk) {
     
-      if(everyoneIsAway() && (state.sunMode == "sunrise")) {
+      if(everyoneIsAway() { //&& (state.sunMode == "sunrise")) {
         log.info("Home is Empty  Setting New Away Mode")
         def delay = (falseAlarmThreshold != null && falseAlarmThreshold != "") ? falseAlarmThreshold * 60 : 10 * 60 
         runIn(delay, "setAway")
       }
     
-      if(everyoneIsAway() && (state.sunMode == "sunset")) {
+      if(everyoneIsAway() { //&& (state.sunMode == "sunset")) {
         log.info("Home is Empty  Setting New Away Mode")
         def delay = (falseAlarmThreshold != null && falseAlarmThreshold != "") ? falseAlarmThreshold * 60 : 10 * 60 
         runIn(delay, "setAway")
