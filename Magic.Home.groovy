@@ -14,7 +14,7 @@
  *
  */
 definition(
-    name: "Magic Home Dev",
+    name: "Magic Home Dev Beta",
     namespace: "tslagle13",
     author: "Tim Slagle",
     description: "Monitor a set of presence sensors and change mode based on when your home is empty or occupied.  Included Night and Day modes for both an occupied and unoccupied house.",
@@ -101,8 +101,8 @@ unsubscribe()
 def initialize() {
   subscribe(people, "presence", presence)
     runIn(60, checkSun)
-  subscribe(location, "sunrise", setSunrise)
-  subscribe(location, "sunset", setSunset)
+  //subscribe(location, "sunrise", setSunrise)
+  //subscribe(location, "sunset", setSunset)
 }
 
 //check current sun state when installed.
@@ -112,9 +112,9 @@ def checkSun() {
   def current = now()
 
   //log.debug "Sunrise with offset ${sunInfo.sunrise}"
-  //log.debug "Sunrise.time with offset ${sunInfo.sunrise.time}"
+  log.debug "Sunrise.time with offset ${sunInfo.sunrise.time}"
   //log.debug "Sunset with offset ${sunInfo.sunset}"
-  //log.debug "Sunset.time with offset ${sunInfo.sunset.time}"
+  log.debug "Sunset.time with offset ${sunInfo.sunset.time}"
 
 if (sunInfo.sunrise.time < current && sunInfo.sunset.time > current) {
     state.sunMode = "sunrise"
@@ -143,18 +143,12 @@ def setSunset(evt) {
 def changeSunMode(newMode) {
   if(allOk) {
 
-    if(everyoneIsAway() { //&& (state.sunMode == "sunrise")) {
+    if(everyoneIsAway()) { //&& (state.sunMode == "sunrise")) {
       log.info("Home is Empty, Setting New Away Mode")
       def delay = (falseAlarmThreshold != null && falseAlarmThreshold != "") ? falseAlarmThreshold * 60 : 10 * 60 
       runIn(delay, setAway)
     }
-  
-//      if(everyoneIsAway() { //&& (state.sunMode == "sunset")) {
-//        log.info("Home is Empty  Setting New Away Mode")
-//        def delay = (falseAlarmThreshold != null && falseAlarmThreshold != "") ? falseAlarmThreshold * 60 : 10 * 60 
-//        runIn(delay, "setAway")
-//      }
-    
+ 
     else {
       log.info("Home is Occupied, Setting New Home Mode")
       setHome()
