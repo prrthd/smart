@@ -51,9 +51,9 @@ preferences {
     }
 
     section(title: "More options", hidden: hideOptionsSection(), hideable: true) {
-        label title: "Assign a name", required: false
+      label title: "Assign a name", required: false
       input "days", "enum", title: "Only on certain days of the week", multiple: true, required: false,
-        options: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+      options: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
       input "modes", "mode", title: "Only when mode is", multiple: true, required: false
     }
   }
@@ -61,27 +61,28 @@ preferences {
 
 def selectPhrases() {
   def configured = (settings.awayDay && settings.awayNight && settings.homeDay && settings.homeNight)
-    dynamicPage(name: "selectPhrases", title: "Configure", nextPage:"Settings", uninstall: true) {    
+
+  dynamicPage(name: "selectPhrases", title: "Configure", nextPage:"Settings", uninstall: true) {    
     section("Who?") {
       input "people", "capability.presenceSensor", title: "Monitor These Presences", required: true, multiple: true,  refreshAfterSelection:true
     }
         
     def phrases = location.helloHome?.getPhrases()*.label
     if (phrases) {
-          phrases.sort()
+      phrases.sort()
       section("Run This Phrase When...") {
         log.trace phrases
         input "awayDay", "enum", title: "Everyone Is Away And It's Day", required: true, options: phrases,  refreshAfterSelection:true
         input "awayNight", "enum", title: "Everyone Is Away And It's Night", required: true, options: phrases,  refreshAfterSelection:true
-                input "homeDay", "enum", title: "At Least One Person Is Home And It's Day", required: true, options: phrases,  refreshAfterSelection:true
-                input "homeNight", "enum", title: "At Least One Person Is Home And It's Night", required: true, options: phrases,  refreshAfterSelection:true
+        input "homeDay", "enum", title: "At Least One Person Is Home And It's Day", required: true, options: phrases,  refreshAfterSelection:true
+        input "homeNight", "enum", title: "At Least One Person Is Home And It's Night", required: true, options: phrases,  refreshAfterSelection:true
       }
-            section("Select modes used for each condition. (Needed for better app logic)") {
+      section("Select modes used for each condition. (Needed for better app logic)") {
         input "homeModeDay", "mode", title: "Select Mode Used for 'Home Day'", required: true
         input "homeModeNight", "mode", title: "Select Mode Used for 'Home Night'", required: true
+      }
     }
-    }
-    }
+  }
 }
 
 def installed() {
@@ -95,12 +96,12 @@ def updated() {
 }
 
 def uninstalled() {
-unsubscribe()
+  unsubscribe()
 }
 
 def initialize() {
   subscribe(people, "presence", presence)
-    runIn(60, checkSun)
+  runIn(60, checkSun)
   //subscribe(location, "sunrise", setSunrise)
   //subscribe(location, "sunset", setSunset)
 }
@@ -117,13 +118,13 @@ def checkSun() {
   log.debug "Sunset.time with offset ${sunInfo.sunset.time}"
 
 if (sunInfo.sunrise.time < current && sunInfo.sunset.time > current) {
-    state.sunMode = "sunrise"
-   setSunrise()
+  state.sunMode = "sunrise"
+  setSunrise()
   }
   
 else {
-   state.sunMode = "sunset"
-    setSunset()
+  state.sunMode = "sunset"
+  setSunset()
   }
 }
 
@@ -191,7 +192,7 @@ def setAway() {
       def message = "Performing \"${awayNight}\" for you as requested."
       log.info(message)
       sendAway(message)
-      location.helloHome.execute(settings.awayNight)
+      location.helloHome.execute(settings.awayNight) 
     }
     
     else if(state.sunMode == "sunrise") {
